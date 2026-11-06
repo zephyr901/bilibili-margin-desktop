@@ -1,0 +1,14 @@
+/dist/
+/.build/
+/desktop-port/client/
+/desktop-port/generated/
+/desktop-port/runs/
+/desktop-port/runtime/
+node_modules/
+.env
+.env.*
+*.log
+*.zip
+*.asar
+*.exe
+*.dll

@@ -1,0 +1,72 @@
+html.margin-desktop-search {
+  --margin-search-top: 104px;
+  --brand_pink: var(--m-accent);
+}
+html.margin-desktop-search body { padding-top: var(--margin-search-top) !important; }
+html.margin-desktop-search :is(#app, .app_layout, .app_layout--content) {
+  height: calc(100vh - var(--margin-search-top)) !important;
+  background: var(--m-canvas) !important;
+}
+html.margin-desktop-search .app_layout--content { width: 100% !important; margin-left: 0 !important; }
+html.margin-desktop-search .app_sidebar,
+html.margin-desktop-search .app_header :is(.app_header--left, .app_header--right-btns, .app_header--right-divider, .app_header--dragbar, .header_search--bg) {
+  display: none !important;
+}
+html.margin-desktop-search .app_header { z-index: 2; }
+html.margin-desktop-search .app_header--wrapper {
+  height: 66px;
+  border: 0;
+  background: var(--m-canvas);
+}
+html.margin-desktop-search .header_search {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+html.margin-desktop-search .header_search--input {
+  top: 9px !important;
+  left: 50%;
+  right: auto !important;
+  width: min(680px, 92%) !important;
+  transform: translateX(-50%);
+  border: 1px solid var(--m-line) !important;
+  border-radius: 24px;
+  background: var(--m-surface) !important;
+  box-shadow: var(--sh-xs);
+}
+html.margin-desktop-search .header_search--input:focus-within { border-color: var(--m-accent) !important; }
+html.margin-desktop-search .header_search--ipt { padding: 0 17px !important; }
+html.margin-desktop-search .header_search--ipt input {
+  height: 46px;
+  line-height: 46px;
+  font: 400 17px var(--m-serif);
+}
+html.margin-desktop-search .search-panel-popover {
+  top: calc(100% + 4px) !important;
+  border-radius: 16px;
+  box-shadow: var(--sh-md);
+}
+
+/* Applied inside the client's existing same-origin results frame. */
+html.margin-desktop-search-results {
+  --brand_pink: var(--m-accent);
+  --brand_pink_thin: var(--brand_blue_thin);
+}
+html.margin-desktop-search-results body { font-family: var(--m-sans) !important; }
+html.margin-desktop-search-results .search-header {
+  background: var(--m-canvas) !important;
+  border-bottom: 1px solid var(--m-line);
+}
+html.margin-desktop-search-results .search-header .vui_tabs--nav-item-active :is(.vui_tabs--nav-link, .vui_tabs--nav-text),
+html.margin-desktop-search-results .search-content em { color: var(--text_link) !important; }
+html.margin-desktop-search-results .search-content { zoom: var(--margin-zoom, 1); }
+html.margin-desktop-search-results :is(.bili-video-card__image, .bili-video-card__cover, .bili-video-card__skeleton--cover) {
+  border-radius: var(--m-radius) !important;
+}
+html.margin-desktop-search-results .bili-video-card__wrap { background: transparent; }
+html.margin-desktop-search-results :is(.bili-video-card__info--tit, .bili-video-card__av--tit) {
+  font-family: var(--m-serif) !important;
+}
+html.margin-desktop-search-results :is(.bili-video-card__stats, .vui_tabs--nav-num) { font-family: var(--m-mono); }
+html.margin-desktop-search-results [data-margin-filtered] { display: none !important; }
