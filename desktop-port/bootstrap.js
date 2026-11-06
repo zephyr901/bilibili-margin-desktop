@@ -16,14 +16,6 @@
   document.addEventListener('click',e=>{if(e.button!==0)return;const link=e.composedPath().find(x=>x instanceof HTMLAnchorElement);if(!link||link.download||!/^https?:/.test(link.href))return;if(location.hostname==='bilipc.bilibili.com'&&link.origin===location.origin)return;try{window.marginRoutes.classifyRoute(link.href);}catch{return;}e.preventDefault();e.stopImmediatePropagation();navigate(link.href);},true);
   window.marginDesktopGuest={startedAt:performance.now(),readyState:document.readyState,url:location.href,size:new URLSearchParams('a=1&b=2').size,open:navigate,originalOpen:original};
   api.log('preload-main',{readyState:document.readyState,hasRoot:!!document.documentElement,size:window.marginDesktopGuest.size});
-  // Upstream nav()/WBI caches are document-scoped. Native login/logout updates
-  // the shared experimental session; reload after its actual state notification.
-  const authSync=()=>{
-    if(!window.biliBridgePc?.addListener)return;
-    let pending;
-    const refresh=reason=>{clearTimeout(pending);pending=setTimeout(()=>{api.log('auth-ui-refresh',{reason});location.reload();},300);};
-    window.biliBridgePc.addListener('auth/userLoginChange',event=>{if(typeof event?.data==='boolean')refresh(event.data?'login':'logout');});
-    window.biliBridgePc.addListener('auth/userInfoChange',()=>refresh('profile'));
-  };
-  if(document.readyState==='loading')addEventListener('DOMContentLoaded',authSync,{once:true});else authSync();
+  // The main renderer reconciles native auth, the web session and the visible
+  // account together. A notification alone does not mean cookies are ready.
 })();

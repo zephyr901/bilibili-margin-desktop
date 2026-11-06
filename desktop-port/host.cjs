@@ -3,7 +3,10 @@ const {app,protocol,session,ipcMain,BrowserWindow,net,shell}=require('electron')
 const fs=require('node:fs');const path=require('node:path');
 const {SerialStore,assetPath,allowedURL,createWorker,isTrustedNativeURL}=require('./core.cjs');
 const {classifyRoute,isGuestURL,routeBridge}=require('./routes.cjs');
-const root=process.env.MARGIN_DESKTOP_ROOT;
+const localAppData = process.env.LOCALAPPDATA;
+// Windows shortcuts and protocol handlers can launch the installed copy directly.
+const root = process.env.MARGIN_DESKTOP_ROOT ||
+  (localAppData && path.isAbsolute(localAppData) && path.join(localAppData, 'MARGIN-Bilibili', 'DesktopProfile'));
 if(!root||!path.isAbsolute(root))throw Error('MARGIN_DESKTOP_ROOT must be an absolute isolated profile directory');
 fs.mkdirSync(root,{recursive:true});
 const log=(event,detail={})=>fs.appendFileSync(path.join(root,'host-events.jsonl'),JSON.stringify({at:new Date().toISOString(),event,...detail})+'\n');
@@ -45,6 +48,17 @@ handle('fetch',async(url,options,sender)=>{
   if (!isTrustedNativeURL(sender.getURL())) throw Error('Native network bridge is unavailable on website pages');
   const r=await request(url,options);
   return {ok:r.ok,status:r.status,body:r.body};
+});
+handle('refreshAccount', (...args) => {
+  const sender = args.at(-1);
+  const url = sender.getURL();
+  if (!isTrustedNativeURL(url) || new URL(url).pathname !== '/index.html') throw Error('Only the native main window can refresh its account');
+  // The official shell can suppress a renderer-initiated location.reload().
+  // Reload this verified main document through its own webContents instead.
+  setTimeout(() => {
+    if (!sender.isDestroyed() && sender.getURL().split('#')[0] === url.split('#')[0]) sender.reload();
+  }, 0);
+  return true;
 });
 async function navigate(url,sender){
   const route=classifyRoute(url);

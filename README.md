@@ -13,6 +13,10 @@
 
 实测范围和需要登录的功能见 [功能验收](desktop-port/release/功能验收.md)。
 
+### 2026-11-06 热补丁
+
+v0.2.0 的源码和构建脚本已原位更新，包含登录状态、头像和收藏夹缓存同步修复，以及搜索结果反复隐藏、显示导致的闪动修复。已有旧包的用户请重新下载本次源码，在新的输出目录构建，退出桌面版后替换程序文件；账号和设置继续使用原来的独立用户目录。修复原理和验证范围见 [热补丁说明](HOTFIX.md)。
+
 ## 在本地生成桌面版
 
 需要 Windows x64、PowerShell 7.2 或更新版本、Node.js 24 或更新版本，以及本机安装的 **B 站 Windows x64 客户端 1.17.6（1.17.6.4728）**。脚本会检查客户端 `resources/app.asar` 的 SHA-256。 [对应版本的官方安装包](https://dl.hdslb.com/mobile/pack/bili_win/23743424/public/bilibili-setup-v1.17.6.exe) · [WinGet 版本清单](https://github.com/microsoft/winget-pkgs/blob/master/manifests/b/Bilibili/Bilibili/1.17.6/Bilibili.Bilibili.installer.yaml)
@@ -33,7 +37,7 @@
 在源码目录运行测试。
 
 ```powershell
-node --test tests/desktop-host.test.cjs tests/desktop-routes.test.cjs
+node --test tests/desktop-auth.test.cjs tests/native-filter-stability.test.cjs tests/desktop-host.test.cjs tests/desktop-routes.test.cjs
 ```
 
 适配代码位于 `desktop-port/`，用到的上游源码和原始版权声明位于 `third_party/margin/`。GitHub 发行版提供源码和构建脚本。脚本读取本机官方程序，在新目录生成桌面包。B 站客户端及其商标适用权利方的条款。 [映间 MIT 许可证](third_party/margin/LICENSE) · [B 站用户使用协议](https://www.bilibili.com/blackboard/protocal/licence.html)

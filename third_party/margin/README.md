@@ -6,4 +6,6 @@
 
 这里保留构建所需的上游 TypeScript 和 CSS。适配版改动涉及设置、原生搜索过滤、评论样式与三连动效。测试所用的 `tests/fixtures/margin-v0.52.0-background.js` 也来自同一版本的扩展包。
 
+2026-11-06 热补丁更新了 `src/content/native-filter.ts`：搜索组件卸载被隐藏卡片的内容时，保留该节点最近一次有效元数据，避免占位节点被反复显示、隐藏；切换搜索地址时清除缓存。原始版权和许可证保持保留。
+
 构建时加载上游已编译的页面、后台代码和字体。Chrome／Edge 版 `margin.zip` 的 SHA-256 为 `e679f349847ab66e360d941776b5a5c62a6472fc944464a77343802ae5eac3b8`。字体许可证随本地生成的包附带。 [上游发行版](https://github.com/jiuyang5354/bilibili-margin/releases/tag/v0.52.0)

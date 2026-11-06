@@ -5,6 +5,7 @@
 
   const adapter = await import('margin://app/adapter.js');
   const {createNativeSearchSkin} = await import('margin://app/native-search.js');
+  const {createAuthSync} = await import('margin://app/auth-sync.js');
   const raw = await api.storageGet('margin:settings');
   if (!raw['margin:settings']) await api.storageSet({'margin:settings': {theme: 'light'}});
   let settings = await adapter.loadSettings();
@@ -54,13 +55,43 @@
   document.head.append(nativeStyle);
 
   let home, loadingHome;
+  const authSync = createAuthSync({
+    getBridge: () => window.biliBridgePc,
+    readRendered: () => {
+      const user = home?.host.shadowRoot.querySelector('.top .user');
+      if (!user) return null;
+      const isLogin = user.classList.contains('in');
+      return {isLogin, mid: isLogin ? Number(new URL(user.href).pathname.split('/')[1]) : 0,
+        cacheStale: isLogin && !!home?.fav?.body.querySelector('.shelf a.user')};
+    },
+    readNav: async () => {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 4000);
+      try {
+        const response = await fetch('https://api.bilibili.com/x/web-interface/nav', {
+          credentials: 'include', cache: 'no-store', signal: controller.signal,
+        });
+        if (!response.ok) throw Error('Account state HTTP ' + response.status);
+        return (await response.json()).data;
+      } finally { clearTimeout(timer); }
+    },
+    refresh: () => { api.log('auth-ui-refresh', {reason: 'verified-account-change'}); return api.refreshAccount(); },
+    storage: sessionStorage,
+    isVisible: () => !document.hidden,
+    onError: error => api.log('auth-sync-error', {message: String(error.message || error)}),
+  });
+  authSync.start();
+  const authReady = authSync.prepare();
+  addEventListener('focus', () => authSync.check());
+  document.addEventListener('visibilitychange', () => authSync.check());
+  addEventListener('pagehide', () => authSync.stop(), {once: true});
   let nativeOnly = !!sessionStorage.getItem('margin:off');
   let view = 'native';
   const isSearchRoute = () => /^#\/page\/search-page(?:[/?]|$)/.test(location.hash);
 
   function ensureHome() {
     if (!loadingHome) {
-      loadingHome = import('margin://app/pages/home.js').then(({MarginApp}) => {
+      loadingHome = authReady.then(() => import('margin://app/pages/home.js')).then(({MarginApp}) => {
         home = new MarginApp(settings);
         home.host.dataset.marginDesktop = 'true';
         const style = document.createElement('style');
@@ -76,6 +107,7 @@
         home.host.shadowRoot.append(style);
         de.append(home.host);
         runtime.app = runtime.current = home;
+        authSync.mounted();
         return home;
       }).catch(error => { loadingHome = null; throw error; });
     }
@@ -190,6 +222,7 @@
     syncRoute().catch(report);
   });
   themeQuery.addEventListener('change', paintBar);
+  await authReady;
   await syncRoute();
   paintBar();
   api.log('home-mounted', {theme: settings.theme, view, upstream: '0.52.0', nativeBridge: !!window.biliBridgePc});

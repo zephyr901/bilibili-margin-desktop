@@ -43,7 +43,7 @@ for (const module of sourceModules) {
 }
 const palette=fs.readFileSync(path.join(upstream,'src/content/watch.css'),'utf8').split('/* 顶栏：')[0];
 fs.writeFileSync(path.join(assets,'native-palette.css'),compileCSS(palette).text);
-for (const name of ['native-player.css', 'search-particles.js', 'native-comment-tree.js', 'native-search.css', 'native-search.js']) {
+for (const name of ['auth-sync.js', 'native-player.css', 'search-particles.js', 'native-comment-tree.js', 'native-search.css', 'native-search.js']) {
   fs.copyFileSync(path.join(__dirname, name), path.join(assets, name));
 }
 fs.writeFileSync(path.join(assets,'adapter.js'),`export {loadSettings,onSettingsChange,saveSettings,sanitizeSettings} from './adapter/shared/settings.js';\nexport {injectFonts} from './adapter/content/fonts.js';\nexport {startTracking} from './adapter/content/footprint/beat.js';\nexport {setUserReducedMotion} from './adapter/content/motion.js';\n`);

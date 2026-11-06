@@ -87,11 +87,12 @@ test('scoped preload never exposes API to an iframe or host-denied guest',()=>{
     assert.equal(exposed, count, url);
   }
 });
-test('auth notification pair debounces to one refresh and handles logged-out false',()=>{
+test('shared page bootstrap leaves account refresh to the native main renderer',()=>{
   const source=fs.readFileSync(path.join(__dirname,'../desktop-port/bootstrap.js'),'utf8');
   const handlers={},timers=new Map();let id=0,reloads=0;
   const fake={marginDesktop:{onStorageChange:()=>{},log:()=>{}},chrome:{},open:()=>{},biliBridgePc:{addListener:(name,fn)=>handlers[name]=fn}};
   vm.runInNewContext(source,{window:fake,URL,URLSearchParams,document:{readyState:'complete',documentElement:{},addEventListener:()=>{}},location:{href:'https://message.bilibili.com/',reload:()=>reloads++},performance:{now:()=>1},setTimeout:fn=>{timers.set(++id,fn);return id;},clearTimeout:key=>timers.delete(key)});
-  handlers['auth/userLoginChange']({data:false});handlers['auth/userInfoChange']({data:null});
-  assert.equal(timers.size,1);[...timers.values()][0]();assert.equal(reloads,1);
+  assert.equal(Object.keys(handlers).length,0);
+  assert.equal(timers.size,0);
+  assert.equal(reloads,0);
 });

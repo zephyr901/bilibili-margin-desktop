@@ -82,6 +82,7 @@ export function startNativeFilter(kind: NativeKind, settings: Settings, doc = do
   let stopped = false;
   const filter = new FilterRuntime(settings);
   let marked = new Set<HTMLElement>();
+  let targets = new WeakMap<HTMLElement, FilterTarget>();
   let scanT = 0;
   let href = doc.URL;
   const view = doc.defaultView ?? window;
@@ -94,8 +95,18 @@ export function startNativeFilter(kind: NativeKind, settings: Settings, doc = do
     marked.clear();
   };
 
+  const resetRoute = (): boolean => {
+    if (doc.URL === href) return false;
+    href = doc.URL;
+    clearMarks();
+    targets = new WeakMap<HTMLElement, FilterTarget>();
+    requested.clear();
+    return true;
+  };
+
   const scan = () => {
     scanT = 0;
+    resetRoute();
     if (!shouldFilter()) { clearMarks(); return; }
 
     // 同一张卡可能同时命中内外层选择器：只处理最外层
@@ -113,8 +124,15 @@ export function startNativeFilter(kind: NativeKind, settings: Settings, doc = do
 
     for (const el of top) {
       if (el.closest('#margin-root, #margin-watch-top, #margin-bg, #margin-aside')) continue;
-      const target = targetOfNative(el, found.get(el)!);
+      const fresh = targetOfNative(el, found.get(el)!);
+      if (fresh) targets.set(el, fresh);
+      // The native client unloads hidden cards into skeletons. Preserve the last
+      // known metadata while that same card is unloaded, otherwise removing its
+      // mark makes it load again and starts a hide/show loop. A new route or new
+      // valid card data replaces this snapshot; settings still re-evaluate it.
+      const target = fresh ?? targets.get(el);
       if (!target) continue;
+      target.tags = cachedTags(target.bvid);
       // 关键词也要能命中视频标签：缺标签时补拉一次，回来后再扫描并标记
       if (current.filters.keywords.length && target.bvid && !cachedTags(target.bvid) && !requested.has(target.bvid)) {
         requested.add(target.bvid);
@@ -123,7 +141,7 @@ export function startNativeFilter(kind: NativeKind, settings: Settings, doc = do
       if (filter.allows(target)) {
         if (el.getAttribute('data-margin-filtered') === 'native') el.removeAttribute('data-margin-filtered');
       } else {
-        el.setAttribute('data-margin-filtered', 'native');
+        if (el.getAttribute('data-margin-filtered') !== 'native') el.setAttribute('data-margin-filtered', 'native');
         next.add(el);
       }
     }
@@ -135,9 +153,7 @@ export function startNativeFilter(kind: NativeKind, settings: Settings, doc = do
 
   const schedule = () => { if (!stopped && !scanT) scanT = window.setTimeout(scan, 140); };
   const checkRoute = () => {
-    if (doc.URL === href) return;
-    href = doc.URL;
-    if (shouldFilter()) schedule();
+    if (resetRoute() && shouldFilter()) schedule();
   };
 
   const observer = new MutationObserver((records) => {

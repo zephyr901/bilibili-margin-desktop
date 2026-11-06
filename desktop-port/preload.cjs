@@ -16,6 +16,7 @@ function bootstrap() {
     storageRemove:keys=>ipcRenderer.invoke('margin:storageRemove',keys),
     sendMessage:message=>ipcRenderer.invoke('margin:message',message),
     fetch:(url,init)=>ipcRenderer.invoke('margin:fetch',url,init),
+    refreshAccount:()=>ipcRenderer.invoke('margin:refreshAccount'),
     open:url=>ipcRenderer.invoke('margin:open',url),
     onStorageChange:callback=>{const listener=(_event,changes)=>callback(changes,'local');ipcRenderer.on('margin:storageChanged',listener);return()=>ipcRenderer.removeListener('margin:storageChanged',listener);},
     log:(event,detail)=>ipcRenderer.send('margin:log',event,detail)
